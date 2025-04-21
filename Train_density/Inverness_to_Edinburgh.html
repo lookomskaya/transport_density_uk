@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Train Schedule: Inverness → Edinburgh</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; max-width: 900px; margin: auto; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: center; }
+    th { background-color: #f0f0f0; }
+    #log, #info { margin-top: 1rem; color: #444; font-size: 1rem; }
+  </style>
+</head>
+<body>
+
+<h1>Train Schedule: Inverness → Edinburgh </h1>
+
+<button onclick="loadSchedule()">Load Schedule</button>
+
+<div id="info">Waiting for request...</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Departure Time</th>
+      <th>Operator</th>
+      <th>Train</th>
+      <th>Arrival Time</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="results">
+    <tr><td colspan="5">No data yet...</td></tr>
+  </tbody>
+</table>
+
+<div id="log">Loading log will appear here</div>
+
+<script>
+  const appId = 'efa4f855'; 
+  const appKey = 'f32ad9d4a3c4b5a1be2b16d3f5ac85aa'; 
+
+  function getTodayISOStringWithOffset() {
+    const now = new Date();
+    const iso = now.toISOString();
+    const date = iso.slice(0, 10);
+    return `${date}T00:00:00+01:00`; 
+  }
+
+  function loadSchedule() {
+    const datetime = getTodayISOStringWithOffset();
+    const url = `https://transportapi.com/v3/uk/train/station_timetables/crs:INV.json` +
+      `?app_id=${appId}&app_key=${appKey}` +
+      `&datetime=${encodeURIComponent(datetime)}` +
+      `&from_offset=PT0H&to_offset=PT24H` +
+      `&limit=20&live=true&type=departure` +
+      `&train_status=passenger&station_detail=origin&destination=crs:EDB`;
+
+    document.getElementById('log').textContent = 'Loading...';
+    document.getElementById('info').textContent = 'Loading schedule...';
+
+    fetch(url)
+      .then(res => {
+        if (!res.ok) throw new Error(`API Error: ${res.status} ${res.statusText}`);
+        return res.json();
+      })
+      .then(data => {
+        const tbody = document.getElementById('results');
+        const services = data.departures?.all || [];
+
+        tbody.innerHTML = '';
+
+        if (services.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">No trains today.</td></tr>';
+          document.getElementById('info').textContent = 'No services found.';
+          return;
+        }
+
+        services.forEach(train => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${train.aimed_departure_time}</td>
+            <td>${train.operator_name}</td>
+            <td>${train.train_uid}</td>
+            <td>${train.aimed_arrival_time || '—'}</td>
+            <td>${train.status || '—'}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+        document.getElementById('info').textContent = `Total services: ${services.length}`;
+        document.getElementById('log').textContent = 'Done!';
+      })
+      .catch(err => {
+        document.getElementById('log').textContent = 'Error: ' + err.message;
+        document.getElementById('info').textContent = 'Failed to load schedule.';
+      });
+  }
+</script>
+
+</body>
+</html>
