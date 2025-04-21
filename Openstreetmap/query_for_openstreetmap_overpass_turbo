@@ -1,0 +1,6 @@
+[out:json];
+area["name"="United Kingdom"]->.uk;
+
+// Sightseeing with historical significance 
+node(area.uk)["tourism"="attraction"]["historic"];
+out body;
