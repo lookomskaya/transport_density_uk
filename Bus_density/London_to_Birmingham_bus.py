@@ -2,8 +2,8 @@ import pandas as pd
 import requests
 
 # --- API settings ---
-APP_ID = 'd56c9d7c'
-APP_KEY = 'adcca44b2f835da749cf797bb4de2121'
+APP_ID = '' #deleted due security reasons
+APP_KEY = '' #deleted due security reasons
 BASE_URL = "https://transportapi.com/v3/uk/bus/stop_timetables/{stop_id}.json"
 
 # --- Parameters ---
